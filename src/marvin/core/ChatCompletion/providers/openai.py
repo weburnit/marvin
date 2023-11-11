@@ -207,7 +207,12 @@ class OpenAIChatCompletion(AbstractChatCompletion[T]):
 
         if handler_fn := serialized_request.pop("stream_handler", {}):
             serialized_request["stream"] = True
-
+        api_type = serialized_request.get("api_type", None)
+        if isinstance(api_type, str) and api_type.startswith("azure"):
+            if deployment_name := serialized_request.pop("deployment_id", None):
+                serialized_request["deployment_id"] = deployment_name
+            if model := serialized_request.pop("model", None):
+                serialized_request["engine"] = model
         response = await openai.ChatCompletion.acreate(**serialized_request)  # type: ignore # noqa
 
         if handler_fn:
